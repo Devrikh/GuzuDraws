@@ -40,26 +40,49 @@ app.post("/signup",async (req,res)=>{
     }catch(e){
         console.log(e)
         res.status(411).json({
-            message: "Error in DB"
+            message: "Error in DB",
+            error: e
         })
     }
 
 })
 
 
-app.post("/signin",(req,res)=>{
+app.post("/signin",async (req,res)=>{
 
-    const data= SignInSchema.safeParse(req.body);
-    if(!data.success){
+    const parsedData= SignInSchema.safeParse(req.body);
+
+    
+
+    if(!parsedData.success){
         res.json({
             message: "Incorrect Format"
         })
         return
     }
 
-    const userId=1;
 
-     const token= jwt.sign({
+    //HASH Pass
+    try{
+
+
+
+    const user = await prismaClient.user.findFirst({
+        where:{
+            email: parsedData.data?.email,
+            password: parsedData.data.password
+        }
+    })
+
+    if(!user){
+        res.status(403).json({
+            message: "You are not signed up"
+        })
+        return;
+    }
+
+    const userId=user?.id;
+    const token= jwt.sign({
         userId
     },JWT_SECRET);
 
@@ -67,23 +90,47 @@ app.post("/signin",(req,res)=>{
         token: token
     })
 
+    }catch(e){
+        res.status(411).json({
+            message: "Error in DB",
+            error: e
+        })
+}
+
 
 })
 
 
-app.post("/room",authMiddleware, (req,res)=>{
+app.post("/room",authMiddleware, async (req,res)=>{
 
-    const data= CreateRooomSchema.safeParse(req.body);
-    if(!data.success){
+    const parsedData= CreateRooomSchema.safeParse(req.body);
+    if(!parsedData.success){
         res.json({
             message: "Incorrect Format"
         })
         return
     }
 
-    res.json({
-        roomId: 123
+    //@ts-ignore 
+    const userId=req.userId;
+
+    try{
+    const room= await prismaClient.room.create({
+        data:{
+           slug : parsedData.data.slug,
+           adminId: userId
+        }
     })
+
+
+    res.json({
+        roomId: room.id
+    })}catch(e){
+        res.status(411).json({
+            message: "Error in DB",
+            error: e
+        })
+    }
 
 })
 
