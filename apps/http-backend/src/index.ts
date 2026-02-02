@@ -3,27 +3,29 @@ import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend-common/config";
 import { authMiddleware } from "./middleware";
 import {CreateUserSchema, SignInSchema, CreateRooomSchema} from "@repo/common/types"
-import {prisma} from "@repo/db/prisma"
+import {prismaClient} from "@repo/db/prisma"
 
 const app=express();
+app.use(express.json());
 
 
 app.post("/signup",async (req,res)=>{
 
 
     const parsedData= CreateUserSchema.safeParse(req.body);
+    console.log(parsedData);
 
     if(!parsedData.success){
         res.json({
             message: "Incorrect Format"
         })
-        return
+        return;
     }
 
 
     try{
 
-        const user=await prisma.user.create({
+        const user=await prismaClient.user.create({
             data:{
                 email: parsedData.data.email,
                 password: parsedData.data.password,
