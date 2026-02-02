@@ -8,21 +8,39 @@ import {prisma} from "@repo/db/prisma"
 const app=express();
 
 
-app.post("/signup", (req,res)=>{
+app.post("/signup",async (req,res)=>{
 
 
-    const data= CreateUserSchema.safeParse(req.body);
+    const parsedData= CreateUserSchema.safeParse(req.body);
 
-    if(!data.success){
+    if(!parsedData.success){
         res.json({
             message: "Incorrect Format"
         })
         return
     }
 
-    res.json({
-        userId: 123
-    })
+
+    try{
+
+        const user=await prisma.user.create({
+            data:{
+                email: parsedData.data.email,
+                password: parsedData.data.password,
+                name: parsedData.data.name
+            }
+        })
+
+        res.json({
+            message: user.id
+        })
+
+    }catch(e){
+        console.log(e)
+        res.status(411).json({
+            message: "Error in DB"
+        })
+    }
 
 })
 
