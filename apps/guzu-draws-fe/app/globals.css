@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+@theme {
+  --font-leckerli: var(--font-leckerli);
+}

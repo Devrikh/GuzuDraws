@@ -85,7 +85,7 @@ wss.on("connection",function connection(ws, request){
                 data:{
                     userId: authenticatedUserId ,
                     message:message ,
-                    roomId:roomId
+                    roomId:Number(roomId)
                 }
             })
 
